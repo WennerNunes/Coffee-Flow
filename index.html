@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="CoffeeFlow — a simple income and expense tracker for our coffee farm." />
+  <title>CoffeeFlow — Cash Control</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="page">
+
+    <!-- ================= HEADER ================= -->
+    <header role="banner">
+      <div class="logo" aria-hidden="true">☕</div>
+      <div class="header-info">
+        <h1>CoffeeFlow</h1>
+        <p>Our farm's cash control</p>
+      </div>
+      <button
+        class="icon-btn"
+        id="themeBtn"
+        type="button"
+        aria-label="Toggle dark mode"
+        title="Toggle dark mode"
+      >🌙</button>
+    </header>
+
+    <main role="main">
+
+      <!-- ================= FILTERS ================= -->
+      <section class="filters" aria-label="Filters">
+        <label for="monthFilter" class="sr-only">Filter by month</label>
+        <input
+          type="month"
+          id="monthFilter"
+          class="filter-input"
+          aria-label="Filter transactions by month"
+        />
+        <button
+          type="button"
+          class="btn-reset-filter"
+          id="resetFilter"
+          aria-label="Show all transactions"
+        >Show all</button>
+      </section>
+
+      <!-- ================= SUMMARY ================= -->
+      <section class="summary" aria-label="Financial summary">
+        <article class="summary-card">
+          <span class="label">💰 Balance</span>
+          <p class="value" id="balance" aria-live="polite">$ 0.00</p>
+        </article>
+        <article class="summary-card">
+          <span class="label">⬆️ Income</span>
+          <p class="value green" id="income" aria-live="polite">$ 0.00</p>
+        </article>
+        <article class="summary-card">
+          <span class="label">⬇️ Expenses</span>
+          <p class="value red" id="expenses" aria-live="polite">$ 0.00</p>
+        </article>
+      </section>
+
+      <!-- ================= FORM + CHART ================= -->
+      <div class="main-grid">
+
+        <!-- Form -->
+        <section class="form-card" aria-labelledby="formTitle">
+          <h2 id="formTitle">New transaction</h2>
+
+          <div class="type-toggle" role="group" aria-label="Transaction type">
+            <button
+              type="button"
+              class="active"
+              data-type="income"
+              data-action="set-type"
+              aria-pressed="true"
+            >⬆️ Income</button>
+            <button
+              type="button"
+              data-type="expense"
+              data-action="set-type"
+              aria-pressed="false"
+            >⬇️ Expense</button>
+          </div>
+
+          <form id="form" autocomplete="off">
+            <div class="fields">
+
+              <div class="field">
+                <label for="amount">Amount</label>
+                <input
+                  type="number"
+                  id="amount"
+                  name="amount"
+                  step="0.01"
+                  min="0.01"
+                  placeholder="0.00"
+                  inputmode="decimal"
+                  required
+                />
+              </div>
+
+              <div class="field">
+                <div class="label-row">
+                  <label for="category">Category</label>
+                  <button
+                    type="button"
+                    class="btn-new-cat"
+                    data-action="open-category-modal"
+                    aria-label="Add new category"
+                  >+ New</button>
+                </div>
+                <select id="category" name="category" required></select>
+              </div>
+
+              <div class="field">
+                <label for="description">Description (optional)</label>
+                <input
+                  type="text"
+                  id="description"
+                  name="description"
+                  placeholder="Ex: 20 bags for buyer John"
+                />
+              </div>
+
+              <div class="field">
+                <label for="date">Date</label>
+                <input type="date" id="date" name="date" required />
+              </div>
+
+            </div>
+
+            <button type="submit" class="btn-submit">Add transaction</button>
+          </form>
+        </section>
+
+        <!-- Chart -->
+        <section class="chart-card" aria-labelledby="chartTitle">
+          <h3 id="chartTitle">📊 Income vs Expenses — last 6 months</h3>
+          <div class="chart-wrapper">
+            <canvas id="barChart" aria-label="Bar chart comparing income and expenses over the last 6 months" role="img"></canvas>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- ================= LIST ================= -->
+      <section aria-labelledby="listTitle">
+        <div class="list-header">
+          <h2 id="listTitle">Transactions</h2>
+          <div class="list-actions">
+            <button type="button" class="btn-tool" id="exportBtn" aria-label="Download a backup file">Export</button>
+            <button type="button" class="btn-tool" id="importBtn" aria-label="Restore from a backup file">Import</button>
+            <button type="button" class="btn-clear" data-action="clear-all" aria-label="Clear all transactions">Clear all</button>
+          </div>
+          <input type="file" id="importFile" accept="application/json,.json" hidden />
+        </div>
+        <ul class="list" id="list" aria-live="polite"></ul>
+      </section>
+
+    </main>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="site-footer" role="contentinfo">
+      <p>CoffeeFlow · Built with ☕ for our farm</p>
+    </footer>
+
+  </div>
+
+  <!-- ================= NEW CATEGORY MODAL ================= -->
+  <div
+    class="modal-overlay"
+    id="categoryModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="categoryModalTitle"
+    aria-hidden="true"
+  >
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="categoryModalTitle">New category</h3>
+        <button
+          type="button"
+          class="modal-close"
+          data-action="close-category-modal"
+          aria-label="Close dialog"
+        >✕</button>
+      </div>
+
+      <div class="field">
+        <span class="field-label">Type</span>
+        <div class="modal-toggle" role="group" aria-label="Category type">
+          <button
+            type="button"
+            id="catTypeIncome"
+            class="active"
+            data-type="income"
+            data-action="set-modal-type"
+            aria-pressed="true"
+          >⬆️ Income</button>
+          <button
+            type="button"
+            id="catTypeExpense"
+            data-type="expense"
+            data-action="set-modal-type"
+            aria-pressed="false"
+          >⬇️ Expense</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="newCatName">Category name</label>
+        <input
+          type="text"
+          id="newCatName"
+          placeholder="Ex: Ground coffee sales"
+          maxlength="40"
+        />
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" data-action="close-category-modal">Cancel</button>
+        <button type="button" class="btn-confirm" data-action="save-category">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
