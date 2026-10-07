@@ -2,6 +2,8 @@
 
 > A simple and practical financial management system designed to help organize the income and expenses of a coffee farming operation.
 
+🔗 **[Live Demo](https://coffeeflowapp.netlify.app)**
+
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Made with JavaScript](https://img.shields.io/badge/Made%20with-JavaScript-yellow)
